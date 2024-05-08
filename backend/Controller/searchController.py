@@ -1,9 +1,11 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from typing import List,  Dict
 from Model.Search import Search
-import Service.EmailService
+
+from Service .ConnectionService import ConnectionService
 
 router = APIRouter()
+manager = ConnectionService()
 
 @router.post('/search/')
 async def file_user_search(search_data: Search):
