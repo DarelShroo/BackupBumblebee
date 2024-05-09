@@ -2,12 +2,9 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from typing import List,  Dict
 from Model.Search import Search
 
-from Service .ConnectionService import ConnectionService
-
 router = APIRouter()
-manager = ConnectionService()
 
-@router.post('/search/')
+@router.post('/search')
 async def file_user_search(search_data: Search):
     file_name = search_data.file_name
     folders = search_data.folders
