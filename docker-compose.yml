@@ -1,0 +1,61 @@
+services:
+  #Backend services
+  backend:
+    build: ./services/backend
+    ports:
+      - 5000:5000
+    volumes:
+      - ./services/backend:/app
+    command: uvicorn src.Main:app --reload --host 0.0.0.0 --port 5000
+
+  #Database
+  db:
+    container_name: psql
+    restart: always
+    image: psql
+    build:
+      context: ./services/backend/src/db
+    volumes:
+      - ./services/backend/services/src/db/data/:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DATABASE: bumblebee_db
+    expose:
+      - 5432
+    ports:
+      - 5432:5432
+    networks:
+      - psql-pgql
+    env_file: 
+      - .env
+
+  #GraphQL
+  graphql:
+    container_name: pgql
+    restart: always
+    image: graphile/postgraphile
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    expose:
+      - 5001
+    ports:
+      - 5001:5001
+    command: ["postgraphile", "--connection", $DATABASE_URL, "--host", "0.0.0.0", "--port", "5001", "--schema", "bumblebee_db"]
+    links:
+      - db
+    networks:
+      - psql-pgql
+
+  frontend:
+    build: ./services/frontend
+    volumes:
+      - './services/frontend:/app'
+      - '/app/node_modules'
+    ports:
+      - 8080:8080
+
+networks:
+  psql-pgql:
